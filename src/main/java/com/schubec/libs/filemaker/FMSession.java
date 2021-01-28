@@ -38,20 +38,25 @@ public class FMSession {
 	private static final String SESSIONS = "/sessions";
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private String host;
+	private String schema;
+	private int port;
 	private String database;
 	private String session;
 	private CloseableHttpClient httpclient;
 
-	public FMSession(String session, String host, String database) {
+	public FMSession(String session, String host, String database, String schema, int port) {
 		this.session = session;
 		this.host = host;
+		this.schema = schema;
+		this.port = port;
 		this.database = database;
 		httpclient = HttpClients.createDefault();
 	}
 
-	public static FMSession login(String host, String database, String user, String password) throws IOException, URISyntaxException {
+	public static FMSession login(String host, String database, String user, String password, String schema, int port) throws IOException, URISyntaxException {
 		URI uri = new URIBuilder()
-				.setScheme("https")
+				.setPort(port)
+				.setScheme(schema)
 				.setHost(host)
 				.setPath("/fmi/data/v1/databases/" + database + SESSIONS)
 				.build();
@@ -60,7 +65,7 @@ public class FMSession {
 		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(user, password);
 		provider.setCredentials(AuthScope.ANY, credentials);
 
-		HttpHost targetHost = new HttpHost(host, 443, "https");
+		HttpHost targetHost = new HttpHost(host, port, "https");
 		AuthCache authCache = new BasicAuthCache();
 		authCache.put(targetHost, new BasicScheme());
 
@@ -85,20 +90,27 @@ public class FMSession {
 
 			if (responseCode == 200) {
 				String fmDataAccessToken = response.getFirstHeader("X-FM-Data-Access-Token").getValue();
-				return new FMSession(fmDataAccessToken, host, database);
+				return new FMSession(fmDataAccessToken, host, database, schema, port);
+			} else {
+				System.err.println("HTTP Status Code" + responseCode);
 			}
 		} finally {
 			response.close();
 		}
 
 		throw new IOException("Ging nicht.");
+	}
+	
+	public static FMSession login(String host, String database, String user, String password) throws IOException, URISyntaxException {
+		return login(host, database, user, password, "https", 443);
 
 	}
 
 	public boolean logout() throws URISyntaxException, ClientProtocolException, IOException {
 		URI uri = new URIBuilder()
-				.setScheme("https")
+				.setScheme(schema)
 				.setHost(host)
+				.setPort(port)
 				.setPath("/fmi/data/v1/databases/" + database + SESSIONS + "/" + session)
 				.build();
 
@@ -125,8 +137,9 @@ public class FMSession {
 
 	private URI getURI(FMCommandBase fmCommand) throws URISyntaxException {
 		return new URIBuilder()
-				.setScheme("https")
+				.setScheme(schema)
 				.setHost(host)
+				.setPort(port)
 				.setPath("/fmi/data/v1/databases/" + database + fmCommand.getEndpoint())
 				.build();
 	}
@@ -145,7 +158,7 @@ public class FMSession {
 		if (fmCommand instanceof FMCommandWithData) {
 			FMCommandWithData fmCommandWithData = (FMCommandWithData) fmCommand;
 			String json = objectMapper.writer().writeValueAsString(fmCommandWithData.asJsonNode());
-System.out.println("Sending json body: " + json );
+			//System.out.println("Sending json body: " + json );
 			StringEntity requestEntity = new StringEntity(
 					json,
 					ContentType.APPLICATION_JSON);
@@ -156,7 +169,7 @@ System.out.println("Sending json body: " + json );
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			System.out.println(responseCode + ":  " + entityString);
+			//System.out.println(responseCode + ":  " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
 			// if (responseCode == 200) {
