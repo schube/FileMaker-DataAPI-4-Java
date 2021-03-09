@@ -1,5 +1,8 @@
 package com.schubec.libs.filemaker;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,6 +23,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -28,9 +32,12 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schubec.libs.filemaker.base.FMCommandBase;
 import com.schubec.libs.filemaker.base.FMCommandWithData;
+import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class FMSession {
@@ -100,7 +107,7 @@ public class FMSession {
 
 		throw new IOException("Ging nicht.");
 	}
-	
+
 	public static FMSession login(String host, String database, String user, String password) throws IOException, URISyntaxException {
 		return login(host, database, user, password, "https", 443);
 
@@ -140,13 +147,41 @@ public class FMSession {
 				.setScheme(schema)
 				.setHost(host)
 				.setPort(port)
-				.setPath("/fmi/data/v1/databases/" + database + fmCommand.getEndpoint())
+				.setPath("/fmi/data/vLatest/databases/" + database + fmCommand.getEndpoint())
 				.build();
 	}
 
-	
+	public FMResult uploadContainer(FMUploadContainerCommand fmCommand) throws ClientProtocolException, IOException, URISyntaxException {
+		if (fmCommand.getFile() == null) {
+			throw new IOException("No File set");
+		}
+		URI uri = getURI(fmCommand);
+		HttpRequestBase httpCommand = fmCommand.getHttpCommand(uri);
+		httpCommand.setHeader("Authorization", "Bearer " + session);
+		httpCommand.setHeader("Accept", "application/json");
+
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+		try (FileInputStream fis = new FileInputStream(fmCommand.getFile())) {
+
+			builder.addBinaryBody(
+					"upload", // This MUST be named "upload", otherwise FileMaker does not accept it
+					fis,
+					ContentType.APPLICATION_OCTET_STREAM,
+					fmCommand.getFileName());
+
+			HttpEntity multipart = builder.build();
+			((HttpPost) httpCommand).setEntity(multipart);
+			CloseableHttpResponse response = httpclient.execute(httpCommand);
+
+			return processFileMakerResponse(response);
+		}
+	}
 
 	public FMResult execute(FMCommandBase fmCommand) throws ClientProtocolException, IOException, URISyntaxException {
+		if (fmCommand instanceof FMUploadContainerCommand) {
+			return this.uploadContainer((FMUploadContainerCommand) fmCommand);
+		}
 		URI uri = getURI(fmCommand);
 
 		HttpRequestBase httpCommand = fmCommand.getHttpCommand(uri);
@@ -158,18 +193,23 @@ public class FMSession {
 		if (fmCommand instanceof FMCommandWithData) {
 			FMCommandWithData fmCommandWithData = (FMCommandWithData) fmCommand;
 			String json = objectMapper.writer().writeValueAsString(fmCommandWithData.asJsonNode());
-			//System.out.println("Sending json body: " + json );
+			// System.out.println("Sending json body: " + json );
 			StringEntity requestEntity = new StringEntity(
 					json,
 					ContentType.APPLICATION_JSON);
-			((HttpEntityEnclosingRequestBase)httpCommand).setEntity(requestEntity);
+			((HttpEntityEnclosingRequestBase) httpCommand).setEntity(requestEntity);
 		}
 		CloseableHttpResponse response = httpclient.execute(httpCommand);
+		return processFileMakerResponse(response);
+
+	}
+
+	private FMResult processFileMakerResponse(CloseableHttpResponse response) throws IOException, JsonProcessingException, JsonMappingException {
 		try {
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			//System.out.println(responseCode + ":  " + entityString);
+			// System.out.println(responseCode + ": " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
 			// if (responseCode == 200) {
@@ -179,7 +219,6 @@ public class FMSession {
 		} finally {
 			response.close();
 		}
-
 	}
 
 }

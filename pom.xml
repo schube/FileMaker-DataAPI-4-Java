@@ -5,10 +5,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.schubec.libs</groupId>
 	<artifactId>filemaker-data-api-4-java</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<properties>
+		<apache.http.version>4.5.13</apache.http.version>
 		<compiler-plugin.version>3.8.1</compiler-plugin.version>
-
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,13 +19,19 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.11.3</version>
+			<version>2.12.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5.13</version>
+			<version>${apache.http.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>${apache.http.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
