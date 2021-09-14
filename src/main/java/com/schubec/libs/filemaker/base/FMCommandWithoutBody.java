@@ -1,16 +1,11 @@
 package com.schubec.libs.filemaker.base;
 
-import java.net.URI;
-
-import org.apache.http.client.methods.HttpRequestBase;
-
 public abstract class FMCommandWithoutBody extends FMCommandBase {
 
+	//@TODO script als URL Parameter
+	
 	public FMCommandWithoutBody(String layout) {
 		setLayout(layout);
 	}
-	
-	
-	
-	
+
 }

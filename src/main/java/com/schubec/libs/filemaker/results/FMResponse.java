@@ -3,43 +3,38 @@ package com.schubec.libs.filemaker.results;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FMResponse {
-	
-	@JsonProperty("dataInfo")
-	private DataInfo dataInfo;
-	
-	@JsonProperty("data")
-	private Data[] data;
-	
+
+	@JsonProperty("scriptError")
+	private String scriptError;
+
+	@JsonProperty("scriptError.presort")
+	private String scriptErrorPreSort;
+
+	@JsonProperty("scriptError.prerequest")
+	private String scriptErrorPreRequest;
+
 	@JsonProperty("recordId")
-	private long recordId;
+	private String recordId;
 
 	@JsonProperty("modId")
-	private long modId;
+	private String modId;
 
-	
+	@JsonProperty("dataInfo")
+	private DataInfo dataInfo;
 
-	
-	public long getRecordId() {
-		return recordId;
+	@JsonProperty("data")
+	private Record[] records;
+
+	public Record getFirstRecord() {
+		return records[0];
 	}
 
-	public void setRecordId(long recordId) {
-		this.recordId = recordId;
+	public Record[] getRecords() {
+		return records;
 	}
 
-	public long getModId() {
-		return modId;
-	}
-
-	public void setModId(long modId) {
-		this.modId = modId;
-	}
-	public Data[] getData() {
-		return data;
-	}
-
-	public void setData(Data[] data) {
-		this.data = data;
+	public void setRecords(Record[] data) {
+		this.records = data;
 	}
 
 	public DataInfo getDataInfo() {
@@ -48,5 +43,29 @@ public class FMResponse {
 
 	public void setDataInfo(DataInfo dataInfo) {
 		this.dataInfo = dataInfo;
+	}
+
+	public String getRecordId() {
+		return recordId;
+	}
+
+	public void setRecordId(String recordId) {
+		this.recordId = recordId;
+	}
+
+	public String getModId() {
+		return modId;
+	}
+
+	public void setModId(String modId) {
+		this.modId = modId;
+	}
+
+	public String getScriptError() {
+		return scriptError;
+	}
+
+	public void setScriptError(String scriptError) {
+		this.scriptError = scriptError;
 	}
 }
