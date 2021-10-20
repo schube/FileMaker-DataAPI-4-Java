@@ -2,20 +2,25 @@ package com.schubec.libs.filemaker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -69,6 +74,43 @@ public class FMSession {
 
 	}
 
+	/**
+	 * Expected the URL to a container field
+	 * 
+	 * @param url
+	 * @return
+	 * @throws ClientProtocolException
+	 * @throws IOException
+	 * @throws FileMakerException
+	 */
+	public static Optional<byte[]> getContainerdata(String url) throws FileMakerException {
+		if (url == null || url.isEmpty()) {
+			return Optional.empty();
+		}
+		try {
+			CloseableHttpClient httpclient = HttpClientBuilder.create()
+					.build();
+			HttpGet httpGet = new HttpGet(url);
+			CloseableHttpResponse response = httpclient.execute(httpGet);
+			try {
+				int responseCode = response.getStatusLine().getStatusCode();
+				HttpEntity entity = response.getEntity();
+				if (responseCode != 200) {
+					throw new FileMakerException(FileMakerException.ERRORCODE_INVALID_HTTP_STATUS, "Host returned HTTP status code of [" + responseCode + "]");
+				}
+				byte[] bytes = IOUtils.toByteArray(entity.getContent());
+				return Optional.of(bytes);
+
+			} finally {
+				response.close();
+			}
+
+		} catch (IOException e) {
+			throw new FileMakerException(FileMakerException.ERRORCODE_IO_ERROR, "Error while retrieving data from host", e);
+		}
+
+	}
+
 	public static FMSession login(String host, String database, String user, String password, String schema, int port)
 			throws FileMakerException {
 		try {
@@ -106,8 +148,7 @@ public class FMSession {
 					String fmDataAccessToken = response.getFirstHeader("X-FM-Data-Access-Token").getValue();
 					return new FMSession(fmDataAccessToken, host, database, schema, port);
 				} else {
-					throw new FileMakerException(FileMakerException.ERRORCODE_INVALID_HTTP_STATUS,
-							"Host returned HTTP status code of [" + responseCode + "]");
+					throw new FileMakerException(FileMakerException.ERRORCODE_INVALID_HTTP_STATUS, "Host returned HTTP status code of [" + responseCode + "]");
 				}
 			} finally {
 				response.close();
@@ -219,7 +260,7 @@ public class FMSession {
 				int responseCode = response.getStatusLine().getStatusCode();
 				HttpEntity entity = response.getEntity();
 				String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-				//System.out.println(responseCode + ": " + entityString);
+				// System.out.println(responseCode + ": " + entityString);
 				FMScriptsResult fmresult = objectMapper.readValue(entityString, FMScriptsResult.class);
 
 				if (responseCode != 200) {
@@ -276,7 +317,7 @@ public class FMSession {
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			//System.out.println(responseCode + ": " + entityString);
+			// System.out.println(responseCode + ": " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
 			if (responseCode != 200) {
