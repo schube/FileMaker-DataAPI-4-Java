@@ -20,29 +20,34 @@ import com.schubec.libs.filemaker.results.FMResult;
 
 public class BasicTest {
 
+	private static final String LAYOUT_LOG = "Log";
+
 	@Test
 	public void simpleTest() {
 		 try{
-			 FMSession fmSession = FMSession.login("XXX", "XXX", "XXX", "XXX");
+			 FMSession fmSession = FMSession.login(TestConfig.HOST, 
+					 TestConfig.DATABASE,
+					 TestConfig.USERNAME,
+					 TestConfig.PASSWORD);
 
-			FMCommandWithData fmAdd = new FMAddCommand("Log").setField("Details", "3").setField("Kategorie", "Test");
+			FMCommandWithData fmAdd = new FMAddCommand(LAYOUT_LOG).setField("Details", "3").setField("Kategorie", "Test");
 			//fmAdd.setScriptPreSort(new FMScript("WEB Test Script"));
 			FMResult result = fmSession.execute(fmAdd);
 			
 			String recordId = result.getResponse().getRecordId();
 			System.out.println("record created, recordid: " + recordId);
 
-			FMCommandBase fmEdit = new FMEditCommand("Log", Long.parseLong(recordId)).setField("Details", "3").setField("Kategorie",
+			FMCommandBase fmEdit = new FMEditCommand(LAYOUT_LOG, Long.parseLong(recordId)).setField("Details", "3").setField("Kategorie",
 					"Test Edit");
 			FMResult result2 = fmSession.execute(fmEdit);
 			if (!result2.isSuccess()) {
 				System.out.println("reccord NOT created, because: " + result2.getMessagesAsString());
 			}
-			FMCommandBase fmDelete = new FMDeleteCommand("Log", Long.parseLong(recordId));
+			FMCommandBase fmDelete = new FMDeleteCommand(LAYOUT_LOG, Long.parseLong(recordId));
 
 			FMResult result3 = fmSession.execute(fmDelete);
 
-			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand("Log", 46l);
+			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
 			FMResult result4 = fmSession.execute(fmGetbyId);
 			long recordId2 = result4.getFirstRecord().getRecordId();
 			System.out.println("record recevied recordid: " + recordId2);

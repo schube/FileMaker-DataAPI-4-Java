@@ -6,7 +6,7 @@ public class FileMakerException extends Exception {
 	public static final int ERRORCODE_URI_SYNTAX_ERROR = -101;
 	public static final int ERRORCODE_IO_ERROR = -102;
 	public static final int ERRORCODE_INVALID_HTTP_STATUS = -103;
-
+	public static final int ERRORCODE_MISSING_VALUE = -104;
 	private int errorCode = ERRORCODE_OK;
 
 	/**
