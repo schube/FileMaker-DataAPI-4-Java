@@ -9,6 +9,29 @@ Also, the API is subject to change!
 
 Contributions are welcome!
 
+# Usage
+
+Add this dependency to your maven POM
+
+    <dependency>
+      <groupId>com.schubec.libs</groupId>
+      <artifactId>filemaker-data-api-4-java</artifactId>
+      <version>0.0.7-SNAPSHOT</version>
+    </dependency>
+
+The artifacts are published to s01.oss.sonatype, so you have to add this repository:
+
+	<repositories>
+    	<repository>
+        	<id>oss-sonatype</id>
+	        <name>oss-sonatype</name>
+    	    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        	<snapshots>
+	            <enabled>true</enabled>
+    	    </snapshots>
+	    </repository>
+	</repositories>
+
 
 # Internal
 
@@ -20,4 +43,4 @@ Contributions are welcome!
 
 ### Publish Snapshot
 
-    mvn clean source:jar deploy -Dmaven.test.skip=true
+    mvn clean source:jar deploy -Dmaven.test.skip=true -P ossrh
