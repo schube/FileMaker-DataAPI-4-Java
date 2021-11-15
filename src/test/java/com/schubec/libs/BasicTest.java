@@ -15,7 +15,7 @@ import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMFindCriterion;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
 import com.schubec.libs.filemaker.implementation.FMScript;
-import com.schubec.libs.filemaker.results.Record;
+import com.schubec.libs.filemaker.results.FMRecord;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class BasicTest {
@@ -56,7 +56,7 @@ public class BasicTest {
 			System.out.println("XXXX=>"+result4.getFirstRecord().getDateField("Date"));
 			System.out.println("XXXX=>"+result4.getFirstRecord().getTimestampField("Änderungszeitstempel"));
 			
-			Record[] records = result4.getRecords();
+			FMRecord[] records = result4.getRecords();
 			System.out.println("get status: " + records[0].getFieldData().get("Status"));
 
 			FMFindCommand fmFind = new FMFindCommand("FAQs");
@@ -68,7 +68,7 @@ public class BasicTest {
 			long recordId3 = result5.getFirstRecord().getRecordId();
 			System.out.println("record recevied recordid: " + recordId3);
 
-			for (Record records2 : result5.getRecords()) {
+			for (FMRecord records2 : result5.getRecords()) {
 				System.out.println("Get frage: " + records2.getFieldData().get("Frage"));
 			}
 

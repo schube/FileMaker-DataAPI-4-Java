@@ -1,31 +1,14 @@
 package com.schubec.libs.filemaker.results;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FMScriptsResult {
-
-	@JsonIgnore
-	private int httpStatusCode;
+public class FMScriptsResult extends BasicFMResult {
 
 	@JsonProperty("messages")
 	private Message[] messages;
 
 	@JsonProperty("response")
 	private FMScriptsResponse response;
-
-	public int getHttpStatusCode() {
-		return httpStatusCode;
-	}
-
-	public void setHttpStatusCode(int httpStatusCode) {
-		this.httpStatusCode = httpStatusCode;
-	}
-
-	@JsonIgnore
-	public boolean isSuccess() {
-		return httpStatusCode == 200;
-	}
 
 	public FMScriptsResponse getResponse() {
 		return response;

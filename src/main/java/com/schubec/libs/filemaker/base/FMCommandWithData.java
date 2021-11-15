@@ -20,8 +20,12 @@ public abstract class FMCommandWithData extends FMCommandBase {
 
 	protected abstract void buildCommand();
 
-	public ObjectNode asJsonNode() {
+	@Override
+	public void prepareCommand() {
 		buildCommand();
+	}
+	
+	public ObjectNode asJsonNode() {
 		if (this.getScript() != null) {
 			getFmJsonObject().put("script", this.getScript().getScriptName());
 			if (this.getScript().getScriptParameter() != null) {

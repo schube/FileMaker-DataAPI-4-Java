@@ -18,4 +18,10 @@ public class FMListScriptsCommand extends FMCommandBase {
 		return new HttpGet(uri);
 	}
 
+	@Override
+	public void prepareCommand() {
+		// Nothing to do
+		
+	}
+
 }

@@ -18,8 +18,10 @@ public class ScriptsTest {
 					TestConfig.DATABASE,
 					TestConfig.USERNAME,
 					TestConfig.PASSWORD);
+			fmSession.setDebug(true);
 			FMListScriptsCommand fmScripts = new FMListScriptsCommand();
 			FMScriptsResult result = fmSession.execute(fmScripts);
+			System.out.println("URI: " + result.getRequestUri().toString());
 			for (Script script : result.getResponse().getScripts()) {
 				System.out.println(script.getName());
 			}

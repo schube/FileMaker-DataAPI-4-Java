@@ -1,16 +1,8 @@
 package com.schubec.libs.filemaker.results;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-public class FMResult {
-
-	
-	
-	@JsonIgnore
-	private int httpStatusCode;
+public class FMResult extends BasicFMResult {
 
 	@JsonProperty("messages")
 	private Message[] messages;
@@ -18,28 +10,15 @@ public class FMResult {
 	@JsonProperty("response")
 	private FMResponse response;
 
-	public int getHttpStatusCode() {
-		return httpStatusCode;
-	}
-
-	public void setHttpStatusCode(int httpStatusCode) {
-		this.httpStatusCode = httpStatusCode;
-	}
-
-	@JsonIgnore
-	public boolean isSuccess() {
-		return httpStatusCode == 200;
-	}
-
 	public DataInfo getDataInfo() {
 		return getResponse().getDataInfo();
 	}
 
-	public Record getFirstRecord() {
+	public FMRecord getFirstRecord() {
 		return getResponse().getFirstRecord();
 	}
 
-	public Record[] getRecords() {
+	public FMRecord[] getRecords() {
 		return getResponse().getRecords();
 	}
 
@@ -55,9 +34,6 @@ public class FMResult {
 		this.messages = messages;
 	}
 
-	
-
-	
 	public String getMessagesAsString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("HTTP Status Code [" + getHttpStatusCode() + "].\n");

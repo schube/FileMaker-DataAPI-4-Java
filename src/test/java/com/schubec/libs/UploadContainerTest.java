@@ -12,20 +12,21 @@ public class UploadContainerTest {
 
 	@Test
 	public void simpleTest() throws Exception {
-		FMSession fmSession = FMSession.login(TestConfig.HOST, 
-				 TestConfig.DATABASE,
-				 TestConfig.USERNAME,
-				 TestConfig.PASSWORD);
-		
+		FMSession fmSession = FMSession.login(TestConfig.HOST,
+				TestConfig.DATABASE,
+				TestConfig.USERNAME,
+				TestConfig.PASSWORD);
+
 		FMUploadContainerCommand uc = new FMUploadContainerCommand("Log", 130, "Testcontainer");
-		File f = new File("/Users/schube/Downloads/4501673966 EKG 014 an schubec GmbH.pdf");
-		uc.setFile(f, "Test.pdf");
-
+		File f = new File("/Users/schube/Documents/myworkspace/FileMaker-DataAPI-4-Java/README.md");
+		uc.setFile(f, "README.md");
+		fmSession.setDebug(true);
 		FMResult result = fmSession.execute(uc);
+		System.out.println("URI: " + result.getRequestUri().toString());
+		System.out.println("URI: " + result.getHttpBody());
 		if (result.isSuccess()) {
-			long recordId = result.getFirstRecord().getRecordId();
-			System.out.println("Document uploaded, recordid: " + recordId);
-
+			String recordId = result.getResponse().getModId();
+			System.out.println("Document uploaded, modid: " + recordId);
 		} else {
 			System.out.println("Document NOT uploaded, because: " + result.getMessagesAsString());
 		}

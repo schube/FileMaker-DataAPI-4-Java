@@ -23,17 +23,17 @@ public class FMResponse {
 	private DataInfo dataInfo;
 
 	@JsonProperty("data")
-	private Record[] records;
+	private FMRecord[] records;
 
-	public Record getFirstRecord() {
+	public FMRecord getFirstRecord() {
 		return records[0];
 	}
 
-	public Record[] getRecords() {
+	public FMRecord[] getRecords() {
 		return records;
 	}
 
-	public void setRecords(Record[] data) {
+	public void setRecords(FMRecord[] data) {
 		this.records = data;
 	}
 

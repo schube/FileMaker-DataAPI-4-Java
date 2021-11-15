@@ -1,17 +1,34 @@
 package com.schubec.libs.filemaker.results;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonFormat.Shape;
-import com.schubec.libs.filemaker.FMSession;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.schubec.libs.filemaker.FMSession;
 
-public class Record {
+public class FMRecord {
+
+	protected DateFormat DF_DATE = null;
+	protected DateFormat DF_TIMESTAMP = null;
+
+	private DateFormat getDateFormater() {
+		if (DF_DATE == null) {
+			DF_DATE = new SimpleDateFormat(FMSession.DATE_PATTERN);
+		}
+		return DF_DATE;
+	}
+
+	private DateFormat getDateTimeFormater() {
+		if (DF_TIMESTAMP == null) {
+			DF_TIMESTAMP = new SimpleDateFormat(FMSession.TIMESTAMP_PATTERN);
+		}
+		return DF_TIMESTAMP;
+	}
 
 	@JsonProperty("recordId")
 	private long recordId;
@@ -39,18 +56,18 @@ public class Record {
 	}
 
 	public String getField(String key, int one_based_repetition) {
-		if(one_based_repetition==1) {
+		if (one_based_repetition == 1) {
 			getField(key);
 		}
-		return fieldData.get(key + "("+one_based_repetition+")");
+		return fieldData.get(key + "(" + one_based_repetition + ")");
 	}
-	
+
 	public Date getDateField(String key) throws ParseException {
 		String value = getField(key);
 		if (value == null || value.equals("")) {
 			return null;
 		}
-		return FMSession.DF_DATE.parse(value);
+		return getDateFormater().parse(value);
 	}
 
 	public Date getTimestampField(String key) throws ParseException {
@@ -58,7 +75,7 @@ public class Record {
 		if (value == null || value.equals("")) {
 			return null;
 		}
-		return FMSession.DF_TIMESTAMP.parse(value);
+		return getDateTimeFormater().parse(value);
 	}
 
 	public Boolean getFieldAsBoolean(String key) {
@@ -99,6 +116,7 @@ public class Record {
 	public void setModId(long modId) {
 		this.modId = modId;
 	}
+
 	public boolean hasField(String key) {
 		return fieldData.containsKey(key);
 	}

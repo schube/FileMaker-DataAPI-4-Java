@@ -2,16 +2,14 @@ package com.schubec.libs.filemaker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -54,15 +52,17 @@ public class FMSession {
 	private String host;
 	private String schema;
 	private int port;
+	private boolean debug = false;
 	private String database;
 	private String session;
+	private URI uri;
 	private CloseableHttpClient httpclient;
 
 	public final static String DATE_PATTERN = "MM/dd/yyyy";
-	public final static DateFormat DF_DATE = new SimpleDateFormat(DATE_PATTERN);
-
 	public final static String TIMESTAMP_PATTERN = "MM/dd/yyyy HH:mm:ss";
-	public final static DateFormat DF_TIMESTAMP = new SimpleDateFormat(TIMESTAMP_PATTERN);
+	private HttpRequestBase httpCommand;
+	private FMCommandBase fmCommand;
+	private CloseableHttpResponse response;
 
 	public FMSession(String session, String host, String database, String schema, int port) {
 		this.session = session;
@@ -146,7 +146,9 @@ public class FMSession {
 
 				if (responseCode == 200) {
 					String fmDataAccessToken = response.getFirstHeader("X-FM-Data-Access-Token").getValue();
-					return new FMSession(fmDataAccessToken, host, database, schema, port);
+					FMSession fmSession = new FMSession(fmDataAccessToken, host, database, schema, port);
+					fmSession.uri = uri;
+					return fmSession;
 				} else {
 					throw new FileMakerException(FileMakerException.ERRORCODE_INVALID_HTTP_STATUS, "Host returned HTTP status code of [" + responseCode + "]");
 				}
@@ -170,7 +172,7 @@ public class FMSession {
 
 	public boolean logout() throws FileMakerException {
 		try {
-			URI uri = new URIBuilder().setScheme(schema).setHost(host).setPort(port)
+			uri = new URIBuilder().setScheme(schema).setHost(host).setPort(port)
 					.setPath("/fmi/data/vLatest/databases/" + database + SESSIONS + "/" + session).build();
 
 			HttpDelete httpPost = new HttpDelete(uri);
@@ -179,7 +181,7 @@ public class FMSession {
 			httpPost.setHeader("Accept", "application/json");
 			httpPost.setHeader("Content-type", "application/json");
 
-			CloseableHttpResponse response = httpclient.execute(httpPost);
+			response = httpclient.execute(httpPost);
 
 			try {
 
@@ -202,20 +204,28 @@ public class FMSession {
 		}
 	}
 
-	private URI getURI(FMCommandBase fmCommand) throws URISyntaxException {
+	private URI caluculateURI() throws URISyntaxException {
+		URIBuilder uriBuilder = new URIBuilder()
+				.setScheme(schema)
+				.setHost(host)
+				.setPort(port)
+				.setPath("/fmi/data/vLatest/databases/" + database + fmCommand.getEndpoint());
+		if (!fmCommand.getUrlParameters().isEmpty()) {
+			uriBuilder.setParameters(fmCommand.getUrlParameters());
+		}
 
-		return new URIBuilder().setScheme(schema).setHost(host).setPort(port)
-				.setPath("/fmi/data/vLatest/databases/" + database + fmCommand.getEndpoint()).build();
+		return uriBuilder.build();
 
 	}
 
 	public FMResult uploadContainer(FMUploadContainerCommand fmCommand) throws FileMakerException {
+		this.fmCommand = fmCommand;
 		if (fmCommand.getFile() == null) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_MISSING_VALUE, "No File set");
 		}
 		try {
-			URI uri = getURI(fmCommand);
-			HttpRequestBase httpCommand = fmCommand.getHttpCommand(uri);
+			uri = caluculateURI();
+			httpCommand = fmCommand.getHttpCommand(uri);
 			httpCommand.setHeader("Authorization", "Bearer " + session);
 			httpCommand.setHeader("Accept", "application/json");
 
@@ -231,9 +241,9 @@ public class FMSession {
 
 				HttpEntity multipart = builder.build();
 				((HttpPost) httpCommand).setEntity(multipart);
-				CloseableHttpResponse response = httpclient.execute(httpCommand);
+				response = httpclient.execute(httpCommand);
 
-				return processFileMakerResponse(fmCommand, response);
+				return processFileMakerResponse();
 			}
 		} catch (URISyntaxException e) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_URI_SYNTAX_ERROR, "URI syntax is not valid",
@@ -246,23 +256,30 @@ public class FMSession {
 
 	public FMScriptsResult execute(FMListScriptsCommand fmCommand) throws FileMakerException {
 		try {
-			URI uri = getURI(fmCommand);
-
-			HttpRequestBase httpCommand = fmCommand.getHttpCommand(uri);
+			this.fmCommand = fmCommand;
+			fmCommand.prepareCommand();
+			
+			uri = caluculateURI();
+			
+			httpCommand = fmCommand.getHttpCommand(uri);
 
 			httpCommand.setHeader("Authorization", "Bearer " + session);
 			httpCommand.setHeader("Accept", "application/json");
 			httpCommand.setHeader("Content-type", "application/json");
 
-			CloseableHttpResponse response = httpclient.execute(httpCommand);
-
+			response = httpclient.execute(httpCommand);
 			try {
 				int responseCode = response.getStatusLine().getStatusCode();
 				HttpEntity entity = response.getEntity();
 				String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-				// System.out.println(responseCode + ": " + entityString);
+				
+				//System.out.println(responseCode + ": " + entityString);
 				FMScriptsResult fmresult = objectMapper.readValue(entityString, FMScriptsResult.class);
-
+				if(isDebug()) {
+					fmresult.setHttpBodyString(entityString);
+					fmresult.setRequestUri(uri);
+				}
+				
 				if (responseCode != 200) {
 					throw new FileMakerException(fmresult.getMessages()[0].getCode(), fmresult.getMessagesAsString());
 				}
@@ -280,14 +297,16 @@ public class FMSession {
 	}
 
 	public FMResult execute(FMCommandBase fmCommand) throws FileMakerException {
+		this.fmCommand = fmCommand;
 		if (fmCommand instanceof FMUploadContainerCommand) {
 			return this.uploadContainer((FMUploadContainerCommand) fmCommand);
 		}
 
 		try {
-			URI uri = getURI(fmCommand);
+			fmCommand.prepareCommand();
+			uri = caluculateURI();
 
-			HttpRequestBase httpCommand = fmCommand.getHttpCommand(uri);
+			httpCommand = fmCommand.getHttpCommand(uri);
 
 			httpCommand.setHeader("Authorization", "Bearer " + session);
 			httpCommand.setHeader("Accept", "application/json");
@@ -300,8 +319,8 @@ public class FMSession {
 				StringEntity requestEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
 				((HttpEntityEnclosingRequestBase) httpCommand).setEntity(requestEntity);
 			}
-			CloseableHttpResponse response = httpclient.execute(httpCommand);
-			return processFileMakerResponse(fmCommand, response);
+			response = httpclient.execute(httpCommand);
+			return processFileMakerResponse();
 
 		} catch (URISyntaxException e) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_URI_SYNTAX_ERROR, "URI syntax is not valid",
@@ -312,14 +331,20 @@ public class FMSession {
 		}
 	}
 
-	private FMResult processFileMakerResponse(FMCommandBase fmCommand, CloseableHttpResponse response) throws FileMakerException, IOException {
+	private FMResult processFileMakerResponse() throws FileMakerException, IOException {
+
 		try {
+
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
 			// System.out.println(responseCode + ": " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
+			if (isDebug()) {
+				fmresult.setHttpBodyString(entityString);
+				fmresult.setRequestUri(uri);
+			}
 			if (responseCode != 200) {
 				throw new FileMakerException(fmresult.getMessages()[0].getCode(), fmresult.getMessagesAsString());
 			}
@@ -339,6 +364,18 @@ public class FMSession {
 			response.close();
 		}
 
+	}
+
+	public boolean isDebug() {
+		return debug;
+	}
+
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
+
+	public URI getUri() {
+		return uri;
 	}
 
 }
