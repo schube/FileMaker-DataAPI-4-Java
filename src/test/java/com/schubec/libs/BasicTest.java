@@ -53,8 +53,8 @@ public class BasicTest {
 			System.out.println("record recevied recordid: " + recordId2);
 
 			System.out.println("XXXX=>"+result4.getFirstRecord().getField("TEST"));
-			System.out.println("XXXX=>"+result4.getFirstRecord().getDateField("Date"));
-			System.out.println("XXXX=>"+result4.getFirstRecord().getTimestampField("Änderungszeitstempel"));
+			System.out.println("XXXX=>"+result4.getFirstRecord().getFieldAsDate("Date"));
+			System.out.println("XXXX=>"+result4.getFirstRecord().getFieldAsTimestamp("Änderungszeitstempel"));
 			
 			FMRecord[] records = result4.getRecords();
 			System.out.println("get status: " + records[0].getFieldData().get("Status"));

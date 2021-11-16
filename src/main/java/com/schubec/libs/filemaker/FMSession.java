@@ -338,7 +338,7 @@ public class FMSession {
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			// System.out.println(responseCode + ": " + entityString);
+			//System.out.println(responseCode + ": " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
 			if (isDebug()) {
