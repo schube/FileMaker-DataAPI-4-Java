@@ -13,11 +13,10 @@ public class ScriptsTest {
 
 	@Test
 	public void simpleTest() {
-		try {
-			FMSession fmSession = FMSession.login(TestConfig.HOST,
-					TestConfig.DATABASE,
-					TestConfig.USERNAME,
-					TestConfig.PASSWORD);
+		try (FMSession fmSession = FMSession.login(TestConfig.HOST,
+				TestConfig.DATABASE,
+				TestConfig.USERNAME,
+				TestConfig.PASSWORD)) {
 			fmSession.setDebug(true);
 			FMListScriptsCommand fmScripts = new FMListScriptsCommand();
 			FMScriptsResult result = fmSession.execute(fmScripts);

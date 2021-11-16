@@ -24,11 +24,10 @@ public class BasicTest {
 
 	@Test
 	public void simpleTest() {
-		 try{
-			 FMSession fmSession = FMSession.login(TestConfig.HOST, 
+		 try(FMSession fmSession = FMSession.login(TestConfig.HOST, 
 					 TestConfig.DATABASE,
 					 TestConfig.USERNAME,
-					 TestConfig.PASSWORD);
+					 TestConfig.PASSWORD)) {
 
 			FMCommandWithData fmAdd = new FMAddCommand(LAYOUT_LOG).setField("Details", "3").setField("Kategorie", "Test");
 			//fmAdd.setScriptPreSort(new FMScript("WEB Test Script"));

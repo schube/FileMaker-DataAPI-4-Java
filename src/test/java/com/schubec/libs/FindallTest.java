@@ -19,11 +19,10 @@ public class FindallTest {
 
 	@Test
 	public void findallTest() {
-		try {
-			FMSession fmSession = FMSession.login(TestConfig.HOST,
-					TestConfig.DATABASE,
-					TestConfig.USERNAME,
-					TestConfig.PASSWORD);
+		try (FMSession fmSession = FMSession.login(TestConfig.HOST,
+				TestConfig.DATABASE,
+				TestConfig.USERNAME,
+				TestConfig.PASSWORD)) {
 
 			FMFindallCommand fmFindall = new FMFindallCommand(LAYOUT_LOG);
 			fmFindall.addSortRule("Kategorie", "descend");

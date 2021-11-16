@@ -45,7 +45,7 @@ import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
 import com.schubec.libs.filemaker.results.FMResult;
 import com.schubec.libs.filemaker.results.FMScriptsResult;
 
-public class FMSession {
+public class FMSession implements AutoCloseable {
 
 	private static final String SESSIONS = "/sessions";
 	private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -54,7 +54,7 @@ public class FMSession {
 	private int port;
 	private boolean debug = false;
 	private String database;
-	private String session;
+	private String fmSessionToken;
 	private URI uri;
 	private CloseableHttpClient httpclient;
 
@@ -64,8 +64,8 @@ public class FMSession {
 	private FMCommandBase fmCommand;
 	private CloseableHttpResponse response;
 
-	public FMSession(String session, String host, String database, String schema, int port) {
-		this.session = session;
+	public FMSession(String fmSessionToken, String host, String database, String schema, int port) {
+		this.fmSessionToken = fmSessionToken;
 		this.host = host;
 		this.schema = schema;
 		this.port = port;
@@ -171,13 +171,16 @@ public class FMSession {
 	}
 
 	public boolean logout() throws FileMakerException {
+		if (fmSessionToken == null) {
+			return false;
+		}
 		try {
 			uri = new URIBuilder().setScheme(schema).setHost(host).setPort(port)
-					.setPath("/fmi/data/vLatest/databases/" + database + SESSIONS + "/" + session).build();
+					.setPath("/fmi/data/vLatest/databases/" + database + SESSIONS + "/" + fmSessionToken).build();
 
 			HttpDelete httpPost = new HttpDelete(uri);
 
-			httpPost.setHeader("Authorization", "Bearer " + session);
+			httpPost.setHeader("Authorization", "Bearer " + fmSessionToken);
 			httpPost.setHeader("Accept", "application/json");
 			httpPost.setHeader("Content-type", "application/json");
 
@@ -187,6 +190,7 @@ public class FMSession {
 
 				int responseCode = response.getStatusLine().getStatusCode();
 				if (responseCode == 200) {
+					fmSessionToken = null;
 					return true;
 				}
 			} finally {
@@ -226,7 +230,7 @@ public class FMSession {
 		try {
 			uri = caluculateURI();
 			httpCommand = fmCommand.getHttpCommand(uri);
-			httpCommand.setHeader("Authorization", "Bearer " + session);
+			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
 			httpCommand.setHeader("Accept", "application/json");
 
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -258,12 +262,12 @@ public class FMSession {
 		try {
 			this.fmCommand = fmCommand;
 			fmCommand.prepareCommand();
-			
+
 			uri = caluculateURI();
-			
+
 			httpCommand = fmCommand.getHttpCommand(uri);
 
-			httpCommand.setHeader("Authorization", "Bearer " + session);
+			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
 			httpCommand.setHeader("Accept", "application/json");
 			httpCommand.setHeader("Content-type", "application/json");
 
@@ -272,14 +276,14 @@ public class FMSession {
 				int responseCode = response.getStatusLine().getStatusCode();
 				HttpEntity entity = response.getEntity();
 				String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-				
-				//System.out.println(responseCode + ": " + entityString);
+
+				// System.out.println(responseCode + ": " + entityString);
 				FMScriptsResult fmresult = objectMapper.readValue(entityString, FMScriptsResult.class);
-				if(isDebug()) {
+				if (isDebug()) {
 					fmresult.setHttpBodyString(entityString);
 					fmresult.setRequestUri(uri);
 				}
-				
+
 				if (responseCode != 200) {
 					throw new FileMakerException(fmresult.getMessages()[0].getCode(), fmresult.getMessagesAsString());
 				}
@@ -308,7 +312,7 @@ public class FMSession {
 
 			httpCommand = fmCommand.getHttpCommand(uri);
 
-			httpCommand.setHeader("Authorization", "Bearer " + session);
+			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
 			httpCommand.setHeader("Accept", "application/json");
 			httpCommand.setHeader("Content-type", "application/json");
 
@@ -338,7 +342,7 @@ public class FMSession {
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			//System.out.println(responseCode + ": " + entityString);
+			// System.out.println(responseCode + ": " + entityString);
 			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
 			fmresult.setHttpStatusCode(responseCode);
 			if (isDebug()) {
@@ -376,6 +380,12 @@ public class FMSession {
 
 	public URI getUri() {
 		return uri;
+	}
+
+	@Override
+	public void close() throws Exception {
+		logout();
+
 	}
 
 }

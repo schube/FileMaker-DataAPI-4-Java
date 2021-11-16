@@ -16,21 +16,22 @@ public class DownloadContainerTest {
 
 	@Test
 	public void simpleTest() throws Exception {
-		FMSession fmSession = FMSession.login(TestConfig.HOST,
+		try (FMSession fmSession = FMSession.login(TestConfig.HOST,
 				TestConfig.DATABASE,
 				TestConfig.USERNAME,
-				TestConfig.PASSWORD);
+				TestConfig.PASSWORD)) {
 
-		FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
-		FMResult result4 = fmSession.execute(fmGetbyId);
+			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
+			FMResult result4 = fmSession.execute(fmGetbyId);
 
-		String urlToContainer = result4.getFirstRecord().getField("Testcontainer");
+			String urlToContainer = result4.getFirstRecord().getField("Testcontainer");
 
-		Optional<byte[]> containerdata = FMSession.getContainerdata(urlToContainer);
+			Optional<byte[]> containerdata = FMSession.getContainerdata(urlToContainer);
 
-		if (containerdata.isPresent()) {
-			File targetFile = new File("test.tmp");
-			FileUtils.writeByteArrayToFile(targetFile, containerdata.get());
+			if (containerdata.isPresent()) {
+				File targetFile = new File("test.tmp");
+				FileUtils.writeByteArrayToFile(targetFile, containerdata.get());
+			}
 		}
 	}
 
