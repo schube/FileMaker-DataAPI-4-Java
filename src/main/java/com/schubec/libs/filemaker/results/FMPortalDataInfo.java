@@ -15,6 +15,9 @@ public class FMPortalDataInfo {
 	@JsonProperty("returnedCount")
 	private long returnedCount;
 
+	@JsonProperty("portalObjectName")
+	private String portalObjectName;
+	
 	public String getDatabase() {
 		return database;
 	}
@@ -45,5 +48,13 @@ public class FMPortalDataInfo {
 
 	public void setReturnedCount(long returnedCount) {
 		this.returnedCount = returnedCount;
+	}
+
+	public String getPortalObjectName() {
+		return portalObjectName;
+	}
+
+	public void setPortalObjectName(String portalObjectName) {
+		this.portalObjectName = portalObjectName;
 	}
 }
