@@ -43,6 +43,7 @@ import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
 import com.schubec.libs.filemaker.implementation.FMListScriptsCommand;
 import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
+import com.schubec.libs.filemaker.results.DataInfo;
 import com.schubec.libs.filemaker.results.FMResult;
 import com.schubec.libs.filemaker.results.FMScriptsResult;
 
@@ -355,6 +356,7 @@ public class FMSession implements AutoCloseable {
 				//In this case we will NOT throw an exception but return an empty FMResult
 				if (fmCommand instanceof FMFindCommand) {
 					if(fmresult.getMessages()[0].getCode() == 401) {
+						fmresult.getResponse().setDataInfo(new DataInfo());
 						return fmresult;
 					}
 				}

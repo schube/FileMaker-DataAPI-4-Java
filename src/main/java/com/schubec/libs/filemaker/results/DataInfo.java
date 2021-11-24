@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DataInfo {
 	@JsonProperty("totalRecordCount")
-	private long totalRecordCount;
+	private long totalRecordCount=0;
 
 	@JsonProperty("foundCount")
-	private long foundCount;
+	private long foundCount=0;
 
 	@JsonProperty("returnedCount")
-	private long returnedCount;
+	private long returnedCount=0;
 
 	@JsonProperty("table")
 	private String table;
