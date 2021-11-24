@@ -29,10 +29,11 @@ public class FindallTest {
 			fmFindall.setLimit(10l);
 			fmSession.setDebug(true);
 			FMResult result = fmSession.execute(fmFindall);
-			long recordId = result.getFirstRecord().getRecordId();
-			System.out.println("record recevied recordid: " + recordId);
-			System.out.println("URI: " + result.getRequestUri().toString());
-
+			if(result.getFirstRecord().isPresent()) {
+				long recordId = result.getFirstRecord().get().getRecordId();
+				System.out.println("record recevied recordid: " + recordId);
+				System.out.println("URI: " + result.getRequestUri().toString());
+			}
 			for (FMRecord record : result.getRecords()) {
 				System.out.println("Get frage: " + record.getFieldData().get("Kategorie") + ": " + record.getFieldData().get("Status"));
 				System.out.println("   portals: " + record.getAvailablePortals().get());

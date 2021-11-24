@@ -1,5 +1,9 @@
 package com.schubec.libs.filemaker.results;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FMResponse {
@@ -23,17 +27,23 @@ public class FMResponse {
 	private DataInfo dataInfo;
 
 	@JsonProperty("data")
-	private FMRecord[] records;
+	private List<FMRecord> records;
 
-	public FMRecord getFirstRecord() {
-		return records[0];
+	public Optional<FMRecord> getFirstRecord() {
+		if (records == null || records.isEmpty()) {
+			return Optional.empty();
+		}
+		return Optional.of(records.get(0));
 	}
 
-	public FMRecord[] getRecords() {
+	public List<FMRecord> getRecords() {
+		if (records == null) {
+			return Collections.emptyList();
+		}
 		return records;
 	}
 
-	public void setRecords(FMRecord[] data) {
+	public void setRecords(List<FMRecord> data) {
 		this.records = data;
 	}
 

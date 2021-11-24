@@ -39,6 +39,7 @@ import com.schubec.libs.filemaker.base.FMCommandBase;
 import com.schubec.libs.filemaker.base.FMCommandWithData;
 import com.schubec.libs.filemaker.base.FMCommandWithDataAndFieldData;
 import com.schubec.libs.filemaker.exceptions.FileMakerException;
+import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
 import com.schubec.libs.filemaker.implementation.FMListScriptsCommand;
 import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
@@ -350,6 +351,13 @@ public class FMSession implements AutoCloseable {
 				fmresult.setRequestUri(uri);
 			}
 			if (responseCode != 200) {
+				//Now check, if we have a FileMaker 401 error which means no record found for a Find Request
+				//In this case we will NOT throw an exception but return an empty FMResult
+				if (fmCommand instanceof FMFindCommand) {
+					if(fmresult.getMessages()[0].getCode() == 401) {
+						return fmresult;
+					}
+				}
 				throw new FileMakerException(fmresult.getMessages()[0].getCode(), fmresult.getMessagesAsString());
 			}
 			if (fmCommand instanceof FMCommandWithDataAndFieldData) {

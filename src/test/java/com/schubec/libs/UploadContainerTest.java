@@ -24,12 +24,10 @@ public class UploadContainerTest {
 			FMResult result = fmSession.execute(uc);
 			System.out.println("URI: " + result.getRequestUri().toString());
 			System.out.println("URI: " + result.getHttpBody());
-			if (result.isSuccess()) {
-				String recordId = result.getResponse().getModId();
-				System.out.println("Document uploaded, modid: " + recordId);
-			} else {
-				System.out.println("Document NOT uploaded, because: " + result.getMessagesAsString());
-			}
+
+			String recordId = result.getResponse().getModId();
+			System.out.println("Document uploaded, modid: " + recordId);
+
 		}
 	}
 }

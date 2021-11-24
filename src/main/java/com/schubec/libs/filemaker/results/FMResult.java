@@ -1,5 +1,8 @@
 package com.schubec.libs.filemaker.results;
 
+import java.util.List;
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FMResult extends BasicFMResult {
@@ -14,11 +17,15 @@ public class FMResult extends BasicFMResult {
 		return getResponse().getDataInfo();
 	}
 
-	public FMRecord getFirstRecord() {
+	public boolean hasRecords() {
+		return !getResponse().getRecords().isEmpty();
+	}
+
+	public Optional<FMRecord> getFirstRecord() {
 		return getResponse().getFirstRecord();
 	}
 
-	public FMRecord[] getRecords() {
+	public List<FMRecord> getRecords() {
 		return getResponse().getRecords();
 	}
 

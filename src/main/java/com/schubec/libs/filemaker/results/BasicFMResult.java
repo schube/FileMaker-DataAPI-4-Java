@@ -22,11 +22,6 @@ public abstract class BasicFMResult {
 		this.httpStatusCode = httpStatusCode;
 	}
 
-	@JsonIgnore
-	public boolean isSuccess() {
-		return httpStatusCode == 200;
-	}
-
 	public void setHttpBodyString(String httpBody) {
 		this.httpBody = httpBody;
 	}

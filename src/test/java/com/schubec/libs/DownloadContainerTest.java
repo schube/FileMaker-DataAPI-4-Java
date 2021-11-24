@@ -23,14 +23,15 @@ public class DownloadContainerTest {
 
 			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
 			FMResult result4 = fmSession.execute(fmGetbyId);
+			if (result4.getFirstRecord().isPresent()) {
+				String urlToContainer = result4.getFirstRecord().get().getField("Testcontainer");
 
-			String urlToContainer = result4.getFirstRecord().getField("Testcontainer");
+				Optional<byte[]> containerdata = FMSession.getContainerdata(urlToContainer);
 
-			Optional<byte[]> containerdata = FMSession.getContainerdata(urlToContainer);
-
-			if (containerdata.isPresent()) {
-				File targetFile = new File("test.tmp");
-				FileUtils.writeByteArrayToFile(targetFile, containerdata.get());
+				if (containerdata.isPresent()) {
+					File targetFile = new File("test.tmp");
+					FileUtils.writeByteArrayToFile(targetFile, containerdata.get());
+				}
 			}
 		}
 	}
