@@ -173,16 +173,16 @@ public class FMSession implements AutoCloseable {
 	}
 
 	public boolean logout() throws FileMakerException {
-		if (fmSessionToken == null) {
+		if (getFmSessionToken() == null) {
 			return false;
 		}
 		try {
 			uri = new URIBuilder().setScheme(schema).setHost(host).setPort(port)
-					.setPath("/fmi/data/vLatest/databases/" + database + SESSIONS + "/" + fmSessionToken).build();
+					.setPath("/fmi/data/vLatest/databases/" + database + SESSIONS + "/" + getFmSessionToken()).build();
 
 			HttpDelete httpPost = new HttpDelete(uri);
 
-			httpPost.setHeader("Authorization", "Bearer " + fmSessionToken);
+			httpPost.setHeader("Authorization", "Bearer " + getFmSessionToken());
 			httpPost.setHeader("Accept", "application/json");
 			httpPost.setHeader("Content-type", "application/json");
 
@@ -232,7 +232,7 @@ public class FMSession implements AutoCloseable {
 		try {
 			uri = caluculateURI();
 			httpCommand = fmCommand.getHttpCommand(uri);
-			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
+			httpCommand.setHeader("Authorization", "Bearer " + getFmSessionToken());
 			httpCommand.setHeader("Accept", "application/json");
 
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -269,7 +269,7 @@ public class FMSession implements AutoCloseable {
 
 			httpCommand = fmCommand.getHttpCommand(uri);
 
-			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
+			httpCommand.setHeader("Authorization", "Bearer " + getFmSessionToken());
 			httpCommand.setHeader("Accept", "application/json");
 			httpCommand.setHeader("Content-type", "application/json");
 
@@ -314,7 +314,7 @@ public class FMSession implements AutoCloseable {
 
 			httpCommand = fmCommand.getHttpCommand(uri);
 
-			httpCommand.setHeader("Authorization", "Bearer " + fmSessionToken);
+			httpCommand.setHeader("Authorization", "Bearer " + getFmSessionToken());
 			httpCommand.setHeader("Accept", "application/json");
 			httpCommand.setHeader("Content-type", "application/json");
 
@@ -396,6 +396,10 @@ public class FMSession implements AutoCloseable {
 	public void close() throws Exception {
 		logout();
 
+	}
+
+	public String getFmSessionToken() {
+		return fmSessionToken;
 	}
 
 }
