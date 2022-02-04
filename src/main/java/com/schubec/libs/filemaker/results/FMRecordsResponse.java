@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FMResponse {
+public class FMRecordsResponse {
 
 	@JsonProperty("scriptError")
 	private String scriptError;

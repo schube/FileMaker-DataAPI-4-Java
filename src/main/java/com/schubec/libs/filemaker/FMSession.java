@@ -33,6 +33,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schubec.libs.filemaker.base.FMCommandBase;
@@ -41,10 +42,14 @@ import com.schubec.libs.filemaker.base.FMCommandWithDataAndFieldData;
 import com.schubec.libs.filemaker.exceptions.FileMakerException;
 import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
+import com.schubec.libs.filemaker.implementation.FMLayoutCommand;
 import com.schubec.libs.filemaker.implementation.FMListScriptsCommand;
 import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
 import com.schubec.libs.filemaker.results.DataInfo;
+import com.schubec.libs.filemaker.results.FMLayoutResponse;
+import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
+import com.schubec.libs.filemaker.results.FMScriptsResponse;
 import com.schubec.libs.filemaker.results.FMScriptsResult;
 
 public class FMSession implements AutoCloseable {
@@ -224,7 +229,7 @@ public class FMSession implements AutoCloseable {
 
 	}
 
-	public FMResult uploadContainer(FMUploadContainerCommand fmCommand) throws FileMakerException {
+	public FMResult<FMRecordsResponse> uploadContainer(FMUploadContainerCommand fmCommand) throws FileMakerException {
 		this.fmCommand = fmCommand;
 		if (fmCommand.getFile() == null) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_MISSING_VALUE, "No File set");
@@ -249,7 +254,7 @@ public class FMSession implements AutoCloseable {
 				((HttpPost) httpCommand).setEntity(multipart);
 				response = httpclient.execute(httpCommand);
 
-				return processFileMakerResponse();
+				return processFileMakerRecordsResponse();
 			}
 		} catch (URISyntaxException e) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_URI_SYNTAX_ERROR, "URI syntax is not valid",
@@ -260,7 +265,7 @@ public class FMSession implements AutoCloseable {
 		}
 	}
 
-	public FMScriptsResult execute(FMListScriptsCommand fmCommand) throws FileMakerException {
+	public FMResult<FMScriptsResponse> execute(FMListScriptsCommand fmCommand) throws FileMakerException {
 		try {
 			this.fmCommand = fmCommand;
 			fmCommand.prepareCommand();
@@ -280,7 +285,7 @@ public class FMSession implements AutoCloseable {
 				String entityString = (entity != null ? EntityUtils.toString(entity) : null);
 
 				// System.out.println(responseCode + ": " + entityString);
-				FMScriptsResult fmresult = objectMapper.readValue(entityString, FMScriptsResult.class);
+				FMResult<FMScriptsResponse> fmresult = objectMapper.readValue(entityString,new TypeReference<FMResult<FMScriptsResponse>>(){});
 				if (isDebug()) {
 					fmresult.setHttpBodyString(entityString);
 					fmresult.setRequestUri(uri);
@@ -301,8 +306,59 @@ public class FMSession implements AutoCloseable {
 					"Error while retrieving data from host", e);
 		}
 	}
+	public FMResult<FMLayoutResponse> execute(FMLayoutCommand fmCommand) throws FileMakerException {
+		this.fmCommand = fmCommand;
+		try {
+			fmCommand.prepareCommand();
+			uri = caluculateURI();
 
-	public FMResult execute(FMCommandBase fmCommand) throws FileMakerException {
+			httpCommand = fmCommand.getHttpCommand(uri);
+
+			httpCommand.setHeader("Authorization", "Bearer " + getFmSessionToken());
+			httpCommand.setHeader("Accept", "application/json");
+			httpCommand.setHeader("Content-type", "application/json");
+
+			response = httpclient.execute(httpCommand);
+			return processFileMakerLayoutResponse();
+
+		} catch (URISyntaxException e) {
+			throw new FileMakerException(FileMakerException.ERRORCODE_URI_SYNTAX_ERROR, "URI syntax is not valid",
+					e);
+		} catch (IOException e) {
+			throw new FileMakerException(FileMakerException.ERRORCODE_IO_ERROR,
+					"Error while retrieving data from host", e);
+		}
+	}
+	
+	private FMResult<FMLayoutResponse> processFileMakerLayoutResponse() throws FileMakerException, IOException {
+
+		try {
+
+			int responseCode = response.getStatusLine().getStatusCode();
+			HttpEntity entity = response.getEntity();
+			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
+			
+			FMResult<FMLayoutResponse> fmresult = objectMapper.readValue(entityString, new TypeReference<FMResult<FMLayoutResponse>>(){});
+			fmresult.setHttpStatusCode(responseCode);
+			if (isDebug()) {
+				fmresult.setHttpBodyString(entityString);
+				fmresult.setRequestUri(uri);
+			}
+			if (responseCode != 200) {
+				throw new FileMakerException(fmresult.getMessages()[0].getCode(), fmresult.getMessagesAsString());
+			}
+			return fmresult;
+		} catch (IOException e) {
+			throw new FileMakerException(FileMakerException.ERRORCODE_IO_ERROR,
+					"Error while retrieving data from host", e);
+		} finally {
+			response.close();
+		}
+
+	}
+
+	
+	public FMResult<FMRecordsResponse> execute(FMCommandBase fmCommand) throws FileMakerException {
 		this.fmCommand = fmCommand;
 		if (fmCommand instanceof FMUploadContainerCommand) {
 			return this.uploadContainer((FMUploadContainerCommand) fmCommand);
@@ -326,7 +382,7 @@ public class FMSession implements AutoCloseable {
 				((HttpEntityEnclosingRequestBase) httpCommand).setEntity(requestEntity);
 			}
 			response = httpclient.execute(httpCommand);
-			return processFileMakerResponse();
+			return processFileMakerRecordsResponse();
 
 		} catch (URISyntaxException e) {
 			throw new FileMakerException(FileMakerException.ERRORCODE_URI_SYNTAX_ERROR, "URI syntax is not valid",
@@ -337,7 +393,7 @@ public class FMSession implements AutoCloseable {
 		}
 	}
 
-	private FMResult processFileMakerResponse() throws FileMakerException, IOException {
+	private FMResult<FMRecordsResponse> processFileMakerRecordsResponse() throws FileMakerException, IOException {
 
 		try {
 
@@ -345,7 +401,7 @@ public class FMSession implements AutoCloseable {
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
 			// System.out.println(responseCode + ": " + entityString);
-			FMResult fmresult = objectMapper.readValue(entityString, FMResult.class);
+			FMResult<FMRecordsResponse> fmresult = objectMapper.readValue(entityString, new TypeReference<FMResult<FMRecordsResponse>>(){});
 			fmresult.setHttpStatusCode(responseCode);
 			if (isDebug()) {
 				fmresult.setHttpBodyString(entityString);

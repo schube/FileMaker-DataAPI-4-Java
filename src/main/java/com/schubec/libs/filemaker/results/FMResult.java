@@ -1,35 +1,16 @@
 package com.schubec.libs.filemaker.results;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FMResult extends BasicFMResult {
+public class FMResult<T> extends BasicFMResult {
 
 	@JsonProperty("messages")
 	private Message[] messages;
 
 	@JsonProperty("response")
-	private FMResponse response;
+	private T response;
 
-	public DataInfo getDataInfo() {
-		return getResponse().getDataInfo();
-	}
-
-	public boolean hasRecords() {
-		return !getResponse().getRecords().isEmpty();
-	}
-
-	public Optional<FMRecord> getFirstRecord() {
-		return getResponse().getFirstRecord();
-	}
-
-	public List<FMRecord> getRecords() {
-		return getResponse().getRecords();
-	}
-
-	public FMResponse getResponse() {
+	public T getResponse() {
 		return response;
 	}
 

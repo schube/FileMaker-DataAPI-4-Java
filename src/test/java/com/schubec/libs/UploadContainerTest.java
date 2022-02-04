@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.schubec.libs.filemaker.FMSession;
 import com.schubec.libs.filemaker.implementation.FMUploadContainerCommand;
+import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class UploadContainerTest {
@@ -18,10 +19,10 @@ public class UploadContainerTest {
 				TestConfig.PASSWORD)) {
 
 			FMUploadContainerCommand uc = new FMUploadContainerCommand("Log", 130, "Testcontainer");
-			File f = new File("/Users/schube/Documents/myworkspace/FileMaker-DataAPI-4-Java/README.md");
+			File f = new File("/Users/schube/Documents/eclipse-workspace/FileMaker-DataAPI-4-Java/README.md");
 			uc.setFile(f, "README.md");
 			fmSession.setDebug(true);
-			FMResult result = fmSession.execute(uc);
+			FMResult<FMRecordsResponse> result = fmSession.execute(uc);
 			System.out.println("URI: " + result.getRequestUri().toString());
 			System.out.println("URI: " + result.getHttpBody());
 

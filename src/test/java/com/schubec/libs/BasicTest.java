@@ -17,6 +17,7 @@ import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMFindCriterion;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
 import com.schubec.libs.filemaker.results.FMRecord;
+import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class BasicTest {
@@ -32,7 +33,7 @@ public class BasicTest {
 
 			FMCommandWithData fmAdd = new FMAddCommand(LAYOUT_LOG).setField("Details", "3").setField("Kategorie", "Test");
 			// fmAdd.setScriptPreSort(new FMScript("WEB Test Script"));
-			FMResult result = fmSession.execute(fmAdd);
+			FMResult<FMRecordsResponse> result = fmSession.execute(fmAdd);
 
 			String recordId = result.getResponse().getRecordId();
 			System.out.println("record created, recordid: " + recordId);
@@ -44,15 +45,16 @@ public class BasicTest {
 			FMCommandBase fmDelete = new FMDeleteCommand(LAYOUT_LOG, Long.parseLong(recordId));
 			fmSession.execute(fmDelete);
 			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
-			FMResult result4 = fmSession.execute(fmGetbyId);
-			long recordId2 = result4.getFirstRecord().get().getRecordId();
+			FMResult<FMRecordsResponse> result4 = fmSession.execute(fmGetbyId);
+			FMRecordsResponse response = result4.getResponse();
+			long recordId2 = response.getFirstRecord().get().getRecordId();
 			System.out.println("record recevied recordid: " + recordId2);
 
-			System.out.println("XXXX=>" + result4.getFirstRecord().get().getField("TEST"));
-			System.out.println("XXXX=>" + result4.getFirstRecord().get().getFieldAsDate("Date"));
-			System.out.println("XXXX=>" + result4.getFirstRecord().get().getFieldAsTimestamp("Änderungszeitstempel"));
+			System.out.println("XXXX=>" + response.getFirstRecord().get().getField("TEST"));
+			System.out.println("XXXX=>" + response.getFirstRecord().get().getFieldAsDate("Date"));
+			System.out.println("XXXX=>" + response.getFirstRecord().get().getFieldAsTimestamp("Änderungszeitstempel"));
 
-			List<FMRecord> records = result4.getRecords();
+			List<FMRecord> records = response.getRecords();
 			System.out.println("get status: " + records.get(0).getFieldData().get("Status"));
 
 			FMFindCommand fmFind = new FMFindCommand("FAQs");
@@ -61,12 +63,12 @@ public class BasicTest {
 			fmFind.addFindCriterion("pkFAQ", 22);
 			fmFind.setLimit(13l);
 
-			FMResult result5 = fmSession.execute(fmFind);
-			if (result5.getFirstRecord().isPresent()) {
-				long recordId3 = result5.getFirstRecord().get().getRecordId();
+			FMResult<FMRecordsResponse> result5 = fmSession.execute(fmFind);
+			if (result5.getResponse().getFirstRecord().isPresent()) {
+				long recordId3 = result5.getResponse().getFirstRecord().get().getRecordId();
 				System.out.println("record recevied recordid: " + recordId3);
 
-				for (FMRecord records2 : result5.getRecords()) {
+				for (FMRecord records2 : result5.getResponse().getRecords()) {
 					System.out.println("Get frage: " + records2.getFieldData().get("Frage"));
 				}
 			}

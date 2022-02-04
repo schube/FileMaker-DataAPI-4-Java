@@ -11,6 +11,7 @@ import com.schubec.libs.filemaker.implementation.FMFindallCommand;
 import com.schubec.libs.filemaker.results.FMPortal;
 import com.schubec.libs.filemaker.results.FMPortalRecord;
 import com.schubec.libs.filemaker.results.FMRecord;
+import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class FindallTest {
@@ -28,13 +29,13 @@ public class FindallTest {
 			fmFindall.addSortRule("Kategorie", "descend");
 			fmFindall.setLimit(10l);
 			fmSession.setDebug(true);
-			FMResult result = fmSession.execute(fmFindall);
-			if(result.getFirstRecord().isPresent()) {
-				long recordId = result.getFirstRecord().get().getRecordId();
+			FMResult<FMRecordsResponse> result = fmSession.execute(fmFindall);
+			if(result.getResponse().getFirstRecord().isPresent()) {
+				long recordId = result.getResponse().getFirstRecord().get().getRecordId();
 				System.out.println("record recevied recordid: " + recordId);
 				System.out.println("URI: " + result.getRequestUri().toString());
 			}
-			for (FMRecord record : result.getRecords()) {
+			for (FMRecord record : result.getResponse().getRecords()) {
 				System.out.println("Get frage: " + record.getFieldData().get("Kategorie") + ": " + record.getFieldData().get("Status"));
 				System.out.println("   portals: " + record.getAvailablePortals().get());
 				Optional<FMPortal> portalJahre = record.getPortal("Log.TestJahre");

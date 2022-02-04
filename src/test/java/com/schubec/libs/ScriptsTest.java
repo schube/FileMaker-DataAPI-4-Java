@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import com.schubec.libs.filemaker.FMSession;
 import com.schubec.libs.filemaker.implementation.FMListScriptsCommand;
-import com.schubec.libs.filemaker.results.FMScriptsResult;
+import com.schubec.libs.filemaker.results.FMResult;
+import com.schubec.libs.filemaker.results.FMScriptsResponse;
 import com.schubec.libs.filemaker.results.Script;
 
 public class ScriptsTest {
@@ -19,7 +20,7 @@ public class ScriptsTest {
 				TestConfig.PASSWORD)) {
 			fmSession.setDebug(true);
 			FMListScriptsCommand fmScripts = new FMListScriptsCommand();
-			FMScriptsResult result = fmSession.execute(fmScripts);
+			 FMResult<FMScriptsResponse> result = fmSession.execute(fmScripts);
 			System.out.println("URI: " + result.getRequestUri().toString());
 			for (Script script : result.getResponse().getScripts()) {
 				System.out.println(script.getName());

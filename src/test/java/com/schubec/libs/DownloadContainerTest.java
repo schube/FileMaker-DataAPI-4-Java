@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.schubec.libs.filemaker.FMSession;
 import com.schubec.libs.filemaker.base.FMCommandBase;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
+import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 
 public class DownloadContainerTest {
@@ -22,9 +23,9 @@ public class DownloadContainerTest {
 				TestConfig.PASSWORD)) {
 
 			FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(LAYOUT_LOG, 46l);
-			FMResult result4 = fmSession.execute(fmGetbyId);
-			if (result4.getFirstRecord().isPresent()) {
-				String urlToContainer = result4.getFirstRecord().get().getField("Testcontainer");
+			FMResult<FMRecordsResponse> result4 = fmSession.execute(fmGetbyId);
+			if (result4.getResponse().getFirstRecord().isPresent()) {
+				String urlToContainer = result4.getResponse().getFirstRecord().get().getField("Testcontainer");
 
 				Optional<byte[]> containerdata = FMSession.getContainerdata(urlToContainer);
 
