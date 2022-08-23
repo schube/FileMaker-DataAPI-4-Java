@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -33,13 +32,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.schubec.libs.filemaker.base.FMCommandBase;
 import com.schubec.libs.filemaker.base.FMCommandWithData;
 import com.schubec.libs.filemaker.base.FMCommandWithDataAndFieldData;
 import com.schubec.libs.filemaker.exceptions.FileMakerException;
+import com.schubec.libs.filemaker.implementation.FMEditCommand;
 import com.schubec.libs.filemaker.implementation.FMFindCommand;
 import com.schubec.libs.filemaker.implementation.FMGetRecordByIdCommand;
 import com.schubec.libs.filemaker.implementation.FMLayoutCommand;
@@ -50,7 +50,6 @@ import com.schubec.libs.filemaker.results.FMLayoutResponse;
 import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 import com.schubec.libs.filemaker.results.FMScriptsResponse;
-import com.schubec.libs.filemaker.results.FMScriptsResult;
 
 public class FMSession implements AutoCloseable {
 
@@ -400,7 +399,7 @@ public class FMSession implements AutoCloseable {
 			int responseCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			String entityString = (entity != null ? EntityUtils.toString(entity) : null);
-			// System.out.println(responseCode + ": " + entityString);
+			//System.out.println(responseCode + ": " + entityString);
 			FMResult<FMRecordsResponse> fmresult = objectMapper.readValue(entityString, new TypeReference<FMResult<FMRecordsResponse>>(){});
 			fmresult.setHttpStatusCode(responseCode);
 			if (isDebug()) {
@@ -420,8 +419,16 @@ public class FMSession implements AutoCloseable {
 			}
 			if (fmCommand instanceof FMCommandWithDataAndFieldData) {
 				if (((FMCommandWithDataAndFieldData) fmCommand).isReturnRecord()) {
-					FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(fmCommand.getLayout(),
-							Long.parseLong(fmresult.getResponse().getRecordId()));
+					Long recordId;
+					//Edit command sends no record ID in response
+					if (fmCommand instanceof FMEditCommand) {
+						recordId = ((FMEditCommand) fmCommand).getRecordId();
+					} else {
+						recordId = Long.parseLong(fmresult.getResponse().getRecordId());
+					}
+					 
+					FMCommandBase fmGetbyId = new FMGetRecordByIdCommand(
+							fmCommand.getLayout(),recordId);
 					return execute(fmGetbyId);
 				}
 

@@ -38,9 +38,12 @@ public class BasicTest {
 			String recordId = result.getResponse().getRecordId();
 			System.out.println("record created, recordid: " + recordId);
 
-			FMCommandBase fmEdit = new FMEditCommand(LAYOUT_LOG, Long.parseLong(recordId)).setField("Details", "3").setField("Kategorie",
-					"Test Edit");
-			fmSession.execute(fmEdit);
+			FMEditCommand fmEdit = new FMEditCommand(LAYOUT_LOG, Long.parseLong(recordId));
+			fmEdit.setField("Details", "3")
+					.setField("Kategorie", "Test Edit");
+			fmEdit.setReturnRecord(true);
+			FMResult<FMRecordsResponse> editResponse = fmSession.execute(fmEdit);
+			System.out.println(editResponse.getResponse().getFirstRecord().get().getRecordId());
 
 			FMCommandBase fmDelete = new FMDeleteCommand(LAYOUT_LOG, Long.parseLong(recordId));
 			fmSession.execute(fmDelete);
