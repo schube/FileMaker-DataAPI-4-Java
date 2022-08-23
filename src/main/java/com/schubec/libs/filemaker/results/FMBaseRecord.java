@@ -34,7 +34,7 @@ public class FMBaseRecord {
 	public Set<String> getAvailableFields() {
 		return fieldData.keySet();
 	}
-	
+
 	public Map<String, String> getFieldData() {
 		return fieldData;
 	}
@@ -54,23 +54,43 @@ public class FMBaseRecord {
 		return fieldData.get(key + "(" + one_based_repetition + ")");
 	}
 
-	public Date getFieldAsDate(String key) throws ParseException {
-		String value = getField(key);
-		if (value == null || value.equals("")) {
-			return null;
-		}
-		return getDateFormater().parse(value);
+	public Date getFieldAsDate(String key) {
+		return getFieldAsDate(key, null);
 	}
 
-	public Date getFieldAsTimestamp(String key) throws ParseException {
+	public Date getFieldAsDate(String key, Date defaultValue) {
 		String value = getField(key);
 		if (value == null || value.equals("")) {
-			return null;
+			return defaultValue;
 		}
-		return getDateTimeFormater().parse(value);
+		try {
+			return getDateFormater().parse(value);
+		} catch (ParseException e) {
+			return defaultValue;
+		}
+	}
+
+	public Date getFieldAsTimestamp(String key) {
+		return getFieldAsTimestamp(key, null);
+	}
+
+	public Date getFieldAsTimestamp(String key, Date defaultValue) {
+		String value = getField(key);
+		if (value == null || value.equals("")) {
+			return defaultValue;
+		}
+		try {
+			return getDateTimeFormater().parse(value);
+		} catch (ParseException e) {
+			return defaultValue;
+		}
 	}
 
 	public Boolean getFieldAsBoolean(String key) {
+		return getFieldAsBoolean(key, null);
+	}
+
+	public Boolean getFieldAsBoolean(String key, Boolean defaultValue) {
 		String value = getField(key);
 		if (value == null || value.length() == 0) {
 			return false;
@@ -82,15 +102,39 @@ public class FMBaseRecord {
 	}
 
 	public Integer getFieldAsInteger(String key) {
-		return Integer.parseInt(fieldData.get(key));
+		return getFieldAsInteger(key, null);
+	}
+
+	public Integer getFieldAsInteger(String key, Integer defaultValue) {
+		String value = fieldData.get(key);
+		if (value == null || value.equals("")) {
+			return null;
+		}
+		return Integer.parseInt(value);
 	}
 
 	public Double getFieldAsDouble(String key) {
-		return Double.parseDouble(fieldData.get(key));
+		return getFieldAsDouble(key, null);
+	}
+
+	public Double getFieldAsDouble(String key, Double defaultValue) {
+		String value = fieldData.get(key);
+		if (value == null || value.equals("")) {
+			return defaultValue;
+		}
+		return Double.parseDouble(value);
 	}
 
 	public Float getFieldAsFloat(String key) {
-		return Float.parseFloat(fieldData.get(key));
+		return getFieldAsFloat(key, null);
+	}
+
+	public Float getFieldAsFloat(String key, Float defaultValue) {
+		String value = fieldData.get(key);
+		if (value == null || value.equals("")) {
+			return defaultValue;
+		}
+		return Float.parseFloat(value);
 	}
 
 	public boolean hasField(String key) {
