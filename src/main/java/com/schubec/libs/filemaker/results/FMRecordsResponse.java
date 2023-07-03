@@ -43,6 +43,13 @@ public class FMRecordsResponse {
 		return records;
 	}
 
+	public boolean hasRecords() {
+		if (records == null || records.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
 	public void setRecords(List<FMRecord> data) {
 		this.records = data;
 	}
