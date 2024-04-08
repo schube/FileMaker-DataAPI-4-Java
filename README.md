@@ -32,6 +32,9 @@ The artifacts are published to s01.oss.sonatype, so you have to add this reposit
 	    </repository>
 	</repositories>
 
+# FileMaker Hosting
+
+* Please consider hosting your Claris FileMaker database at [fm-server.net](http://fm-server.net) to support this open source library.
 
 # Internal
 
