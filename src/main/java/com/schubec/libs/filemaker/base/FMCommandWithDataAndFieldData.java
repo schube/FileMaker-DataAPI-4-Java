@@ -40,14 +40,40 @@ public abstract class FMCommandWithDataAndFieldData extends FMCommandWithData {
 		this.returnRecord = returnRecord;
 	}
 
+	public FMCommandWithDataAndFieldData setField(String fieldname, String value, String defaultValue) {
+		if (value == null) {
+			fieldData.put(fieldname, defaultValue);
+		} else {
+			fieldData.put(fieldname, value);
+		}
+		return this;
+	}
+
 	public FMCommandWithDataAndFieldData setField(String fieldname, String value) {
 		fieldData.put(fieldname, value);
 		return this;
 	}
 
-	public FMCommandWithDataAndFieldData setDateField(String fieldname, Date value) {
+	public FMCommandWithDataAndFieldData setDateField(String fieldname, Date value, String defaultValue) {
+		if (value == null) {
+			fieldData.put(fieldname, defaultValue);
+		} else {
+			fieldData.put(fieldname, getDateFormater().format(value));
+		}
+		return this;
+	}
 
+	public FMCommandWithDataAndFieldData setDateField(String fieldname, Date value) {
 		fieldData.put(fieldname, getDateFormater().format(value));
+		return this;
+	}
+
+	public FMCommandWithDataAndFieldData setTimestampField(String fieldname, Date value, String defaultValue) {
+		if (value == null) {
+			fieldData.put(fieldname, defaultValue);
+		} else {
+			fieldData.put(fieldname, getDateTimeFormater().format(value));
+		}
 		return this;
 	}
 

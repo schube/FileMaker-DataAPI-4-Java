@@ -8,6 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FMRecordsResponse {
 
+	@JsonProperty("scriptResult")
+	private String scriptResult;
+	
 	@JsonProperty("scriptError")
 	private String scriptError;
 
@@ -84,5 +87,13 @@ public class FMRecordsResponse {
 
 	public void setScriptError(String scriptError) {
 		this.scriptError = scriptError;
+	}
+
+	public String getScriptResult() {
+		return scriptResult;
+	}
+
+	public void setScriptResult(String scriptResult) {
+		this.scriptResult = scriptResult;
 	}
 }

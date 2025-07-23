@@ -16,7 +16,7 @@ Add this dependency to your maven POM
     <dependency>
       <groupId>com.schubec.libs</groupId>
       <artifactId>filemaker-data-api-4-java</artifactId>
-      <version>0.0.7-SNAPSHOT</version>
+      <version>0.0.18-SNAPSHOT</version>
     </dependency>
 
 The artifacts are published to s01.oss.sonatype, so you have to add this repository:

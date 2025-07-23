@@ -201,6 +201,8 @@ public class FMSession implements AutoCloseable {
 				}
 			} finally {
 				response.close();
+				httpclient.close();
+				httpclient = null;
 			}
 
 			return false;
