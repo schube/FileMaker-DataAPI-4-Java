@@ -51,6 +51,10 @@ import com.schubec.libs.filemaker.results.FMRecordsResponse;
 import com.schubec.libs.filemaker.results.FMResult;
 import com.schubec.libs.filemaker.results.FMScriptsResponse;
 
+/**
+ * Main entry point for interacting with the FileMaker Data API.
+ * Manages authentication, command execution, and session lifecycle.
+ */
 public class FMSession implements AutoCloseable {
 
 	private static final String SESSIONS = "/sessions";
@@ -70,6 +74,15 @@ public class FMSession implements AutoCloseable {
 	private FMCommandBase fmCommand;
 	private CloseableHttpResponse response;
 
+	/**
+	 * Creates a new FMSession with the given parameters.
+	 *
+	 * @param fmSessionToken The FileMaker session token.
+	 * @param host The FileMaker server host.
+	 * @param database The FileMaker database name.
+	 * @param schema The URL schema (e.g., https).
+	 * @param port The port number.
+	 */
 	public FMSession(String fmSessionToken, String host, String database, String schema, int port) {
 		this.fmSessionToken = fmSessionToken;
 		this.host = host;
@@ -81,13 +94,11 @@ public class FMSession implements AutoCloseable {
 	}
 
 	/**
-	 * Expected the URL to a container field
-	 * 
-	 * @param url
-	 * @return
-	 * @throws ClientProtocolException
-	 * @throws IOException
-	 * @throws FileMakerException
+	 * Downloads container data from a FileMaker container field URL.
+	 *
+	 * @param url The URL to the container field.
+	 * @return Optional containing the byte array of the data, or empty if url is null/empty.
+	 * @throws FileMakerException if an error occurs during download.
 	 */
 	public static Optional<byte[]> getContainerdata(String url) throws FileMakerException {
 		if (url == null || url.isEmpty()) {
@@ -117,6 +128,18 @@ public class FMSession implements AutoCloseable {
 
 	}
 
+	/**
+	 * Logs in to FileMaker Data API and returns a new FMSession.
+	 *
+	 * @param host The FileMaker server host.
+	 * @param database The FileMaker database name.
+	 * @param user The username.
+	 * @param password The password.
+	 * @param schema The URL schema (e.g., https).
+	 * @param port The port number.
+	 * @return A new FMSession instance.
+	 * @throws FileMakerException if login fails.
+	 */
 	public static FMSession login(String host, String database, String user, String password, String schema, int port)
 			throws FileMakerException {
 		try {
@@ -170,12 +193,28 @@ public class FMSession implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Logs in to FileMaker Data API using default schema (https) and port (443).
+	 *
+	 * @param host The FileMaker server host.
+	 * @param database The FileMaker database name.
+	 * @param user The username.
+	 * @param password The password.
+	 * @return A new FMSession instance.
+	 * @throws FileMakerException if login fails.
+	 */
 	public static FMSession login(String host, String database, String user, String password)
 			throws FileMakerException {
 		return login(host, database, user, password, "https", 443);
 
 	}
 
+	/**
+	 * Logs out of the FileMaker Data API session.
+	 *
+	 * @return true if logout was successful, false otherwise.
+	 * @throws FileMakerException if logout fails.
+	 */
 	public boolean logout() throws FileMakerException {
 		if (getFmSessionToken() == null) {
 			return false;
@@ -230,6 +269,13 @@ public class FMSession implements AutoCloseable {
 
 	}
 
+	/**
+	 * Executes a container upload command.
+	 *
+	 * @param fmCommand The upload container command.
+	 * @return The result of the upload operation.
+	 * @throws FileMakerException if the upload fails.
+	 */
 	public FMResult<FMRecordsResponse> uploadContainer(FMUploadContainerCommand fmCommand) throws FileMakerException {
 		this.fmCommand = fmCommand;
 		if (fmCommand.getFile() == null) {
@@ -266,6 +312,13 @@ public class FMSession implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Executes a script listing command.
+	 *
+	 * @param fmCommand The list scripts command.
+	 * @return The result containing script information.
+	 * @throws FileMakerException if the operation fails.
+	 */
 	public FMResult<FMScriptsResponse> execute(FMListScriptsCommand fmCommand) throws FileMakerException {
 		try {
 			this.fmCommand = fmCommand;
@@ -307,6 +360,13 @@ public class FMSession implements AutoCloseable {
 					"Error while retrieving data from host", e);
 		}
 	}
+	/**
+	 * Executes a layout command.
+	 *
+	 * @param fmCommand The layout command.
+	 * @return The result containing layout information.
+	 * @throws FileMakerException if the operation fails.
+	 */
 	public FMResult<FMLayoutResponse> execute(FMLayoutCommand fmCommand) throws FileMakerException {
 		this.fmCommand = fmCommand;
 		try {
@@ -359,6 +419,13 @@ public class FMSession implements AutoCloseable {
 	}
 
 	
+	/**
+	 * Executes a generic FileMaker command.
+	 *
+	 * @param fmCommand The command to execute.
+	 * @return The result containing records information.
+	 * @throws FileMakerException if the operation fails.
+	 */
 	public FMResult<FMRecordsResponse> execute(FMCommandBase fmCommand) throws FileMakerException {
 		this.fmCommand = fmCommand;
 		if (fmCommand instanceof FMUploadContainerCommand) {
@@ -445,24 +512,44 @@ public class FMSession implements AutoCloseable {
 
 	}
 
+	/**
+	 * Returns whether debug mode is enabled.
+	 * @return true if debug is enabled, false otherwise.
+	 */
 	public boolean isDebug() {
 		return debug;
 	}
 
+	/**
+	 * Enables or disables debug mode.
+	 * @param debug true to enable debug, false to disable.
+	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
 	}
 
+	/**
+	 * Returns the URI used for the last command.
+	 * @return The URI.
+	 */
 	public URI getUri() {
 		return uri;
 	}
 
+	/**
+	 * Closes the session and logs out.
+	 * @throws Exception if logout fails.
+	 */
 	@Override
 	public void close() throws Exception {
 		logout();
 
 	}
 
+	/**
+	 * Returns the FileMaker session token.
+	 * @return The session token.
+	 */
 	public String getFmSessionToken() {
 		return fmSessionToken;
 	}

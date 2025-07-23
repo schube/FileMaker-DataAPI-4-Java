@@ -47,4 +47,4 @@ The artifacts are published to s01.oss.sonatype, so you have to add this reposit
 ### Publish Snapshot
 
     export GPG_TTY=$(tty)
-    mvn clean source:jar deploy -Dmaven.test.skip=true -P ossrh
+    mvn clean source:jar deploy -Dmaven.test.skip=true
